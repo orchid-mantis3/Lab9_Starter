@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "145b6d4567a64d83805664d9af66f95f"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+  </script>
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -86,22 +92,157 @@
       <button>Trigger a Global Error</button>
     </section>
   </main>
-
   <script>
+    class InvalidInputError extends Error {
+      constructor(msg) {
+        super(msg);
+        this.name = 'InvalidInputError';
+      }
+    }
+
+    class DivisionByZeroError extends Error {
+      constructor() {
+        super('Cannot divide by zero');
+        this.name = 'DivisionByZeroError';
+      }
+    }
+
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
-      let output = document.querySelector('output');
-      let firstNum = document.querySelector('#first-num').value;
-      let secondNum = document.querySelector('#second-num').value;
-      let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+
+      try {
+        let output = document.querySelector('output');
+        if (!output) throw new Error('Could not find <output> element in the DOM. Was it removed?');
+
+        let firstNum  = document.querySelector('#first-num').value;
+        let secondNum = document.querySelector('#second-num').value;
+        let operator  = document.querySelector('#operator').value;
+
+        if (firstNum === '' || secondNum === '') throw new InvalidInputError('Both fields must be filled in.');
+        if (isNaN(firstNum) || isNaN(secondNum))  throw new InvalidInputError('Inputs must be valid numbers.');
+        if (operator === '/' && Number(secondNum) === 0) throw new DivisionByZeroError();
+
+        let result = eval(`${firstNum} ${operator} ${secondNum}`);
+        output.innerHTML = result;
+        output.style.color = 'black';
+        console.log(`Calculation: ${firstNum} ${operator} ${secondNum} = ${result}`);
+
+      } catch (err) {
+        let output = document.querySelector('output');
+        if (output) {
+          output.innerHTML = `${err.name}: ${err.message}`;
+          output.style.color = 'red';
+        } else {
+          alert(`${err.name}: ${err.message}`);
+        }
+        console.error(err);
+
+      } finally {
+        console.log('finally block — always runs.');
+      }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
 
     // Start your code here
     // You may move this JS to another file if you wish
+    const samplePeople = [
+      { name: 'Alice',   role: 'Engineer', age: 28 },
+      { name: 'Bob',     role: 'Designer', age: 34 },
+      { name: 'Charlie', role: 'Manager',  age: 41 },
+    ];
+
+    // 0 — Console Log
+    errorBtns[0].addEventListener('click', () => {
+      console.log('console.log demo:', samplePeople[0]);
+    });
+
+    // 1 — Console Error
+    errorBtns[1].addEventListener('click', () => {
+      console.error('console.error demo: something went wrong!');
+    });
+
+    // 2 — Console Count
+    errorBtns[2].addEventListener('click', () => {
+      console.count('my-counter');
+    });
+
+    // 3 — Console Warn
+    errorBtns[3].addEventListener('click', () => {
+      console.warn('console.warn demo: this is a warning.');
+    });
+
+    // 4 — Console Assert
+    errorBtns[4].addEventListener('click', () => {
+      console.assert(1 + 1 === 2, 'This will NOT log — assertion passed');
+      console.assert(1 + 1 === 3, 'Assertion failed: 1 + 1 is not 3');
+    });
+
+    // 5 — Console Clear
+    errorBtns[5].addEventListener('click', () => {
+      console.clear();
+    });
+
+    // 6 — Console Dir
+    errorBtns[6].addEventListener('click', () => {
+      console.dir(document.querySelector('form'));
+    });
+
+    // 7 — Console dirxml
+    errorBtns[7].addEventListener('click', () => {
+      console.dirxml(document.querySelector('form'));
+    });
+
+    // 8 — Console Group Start
+    errorBtns[8].addEventListener('click', () => {
+      console.group('Outer Group');
+        console.log('Message inside outer group');
+        console.groupCollapsed('Inner Collapsed Group');
+          console.log('Message inside inner group');
+    });
+
+    // 9 — Console Group End
+    errorBtns[9].addEventListener('click', () => {
+      console.groupEnd(); // closes inner grp
+      console.groupEnd(); // closes outer grp
+    });
+
+    // 10 — Console Table
+    errorBtns[10].addEventListener('click', () => {
+      console.table(samplePeople);
+    });
+
+    // 11 — Start Timer
+    errorBtns[11].addEventListener('click', () => {
+      console.time('lab9-timer');
+    });
+
+    // 12 — End Timer
+    errorBtns[12].addEventListener('click', () => {
+      console.timeEnd('lab9-timer');
+    });
+
+    // 13 — Console Trace
+    function inner()  { console.trace('console.trace demo:'); }
+    function middle() { inner(); }
+    function outer()  { middle(); }
+
+    errorBtns[13].addEventListener('click', () => {
+      outer();
+    });
+
+    // 14 — Trigger a Global Error
+    window.onerror = function (message, source, lineno, colno, error) {
+      console.error(`[window.onerror] ${message} (${source} line ${lineno})`);
+      return true;
+    };
+
+    errorBtns[14].addEventListener('click', () => {
+      setTimeout(() => {
+        undeclaredFunction(); // ReferenceError — caught by window.onerror
+      }, 0);
+    });
   </script>
 </body>
 
